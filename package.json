@@ -1,0 +1,15 @@
+{
+  "name": "shahaurbackend",
+  "version": "1.0.0",
+  "description": "shah ka backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "js",
+    "backend"
+  ],
+  "author": "Shahriyaar",
+  "license": "ISC"
+}
