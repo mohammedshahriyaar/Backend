@@ -4,8 +4,28 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 
+const generateAccessAndRefreshTokens=  async(userId)=>{
+
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+        user.refreshToken=refreshToken
+        //generally for saving mongoose mrthods kickin and ask for passowrd n all
+        //as they are required so we turn of validation here by using validateBeforeSave
+        await user.save({validateBeforeSave: false})
+
+        return {accessToken,refreshToken}
+        
+    } catch (error) {
+        throw new ApiError(500, "something went wrong while generating access and refresh tokens")
+        
+    }
+    
+}
 
 const registerUser = asyncHandler( async(req,res)=>{
+
 
     //get user details from frontend
 
@@ -81,12 +101,9 @@ const registerUser = asyncHandler( async(req,res)=>{
         new ApiResponse(200,createdUser,"USer created successfully")
     )
 
-
-
-
 })
 
-export {registerUser}
+
 
 
 // 4  general steps acc to me
@@ -107,3 +124,132 @@ export {registerUser}
 //check for user creation
 //return response
 
+
+
+//////////login part
+
+
+//as usual check the user fields
+    //check with username that if he exist
+    //password validation 
+    //if exists return
+//above is my approach
+
+
+const loginUser = asyncHandler( async (req,res)=>{
+    //data from req body
+    //check name or email
+    //find user
+    //password checking
+    //access and refreshtoken generation
+    //send cookie
+
+    const {email,username,password} = req.body
+
+    // if(!(username|| email)){
+    //     throw new ApiError(400,"username or email is req")  
+    // }
+    if(!username &&  !email){
+        throw new ApiError(400,"username and email is req")  
+    }   
+
+
+    //find uer either by email or username
+
+    const user = await User.findOne({
+        $or:[{username} ,{email}]
+    })
+
+    if(!user){
+        throw new ApiError(404,"User doesn't exist")
+    }
+
+    //password validation
+    //always use the user extracted from mongodb in this case  extracted at line 135 this has all the methods of our schema
+    
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid){
+        throw new ApiError(401,"Invalid Password")
+    }
+
+    //if we correctlyget password i.e user validated now we generate tokems
+    //we may use these tokens in multiple places so lets write a function for their generation
+
+    const {accessToken,refreshToken} = await generateAccessAndRefreshTokens(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    //sending in cookies
+    const options ={
+        httpOnly:true,
+        secure:true
+    }
+
+    return res.status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user:loggedInUser,accessToken,refreshToken
+                //what we are checking is if a user is trying to save 
+                //aceess and refresh token
+            },
+            "user Logged in succesfully"
+        )
+    )
+    
+})
+
+const logoutUser = asyncHandler(async(req,res)=>{
+    //find user
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{
+                refreshToken: undefined
+            }
+        },
+        {
+            new:true
+        }
+    )
+
+    const options ={
+        httpOnly:true,
+        secure:true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken",options)
+    .cookie("refreshToken",options)
+    .json(
+         new ApiResponse(
+            200,
+            {
+
+            },
+            "USer loggedout successfully"
+            )
+         )
+
+
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+export {registerUser,loginUser,logoutUser}
