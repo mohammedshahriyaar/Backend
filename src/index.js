@@ -5,7 +5,8 @@ import mongoose from "mongoose";
 import connectDB from "./db/index.js";
 import { app } from "./app.js";
 dotenv.config({
-    path:'./env'
+    //give path of env file
+    path:'./.env'
 })
 
 // Error handler for the Express app

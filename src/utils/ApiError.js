@@ -1,4 +1,4 @@
-class ApiError extends Error{
+export default class ApiError extends Error{
 
     constructor(
         statusCode,
@@ -23,8 +23,8 @@ class ApiError extends Error{
         }
     }
 }
-export {ApiError}
+// export { ApiError}
 
-
+//dont know whats the error default export works fine but normal doesnt
 
 //this file tells us that any api error will follow these standards

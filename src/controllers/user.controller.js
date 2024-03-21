@@ -9,7 +9,7 @@ const registerUser = asyncHandler( async(req,res)=>{
 
     //get user details from frontend
 
-    // const {fullname,email,username,password} = req.body
+    const {fullName,email,username,password} = req.body
     // console.log("fullname",fullname);
     // if(fullname === ""){
     //     throw new ApiError(400,"fullname is required")
@@ -17,15 +17,15 @@ const registerUser = asyncHandler( async(req,res)=>{
     // }
 
     //checking fields are empty or not
-    if(
-        [fullName,email,username,password].some((field)=>field?.trim()==="")
-    ){
-        throw new ApiError(400,"All fields are required")
-    }
+    // if(
+    //     [fullName,email,username,password].some((field)=>field?.trim()==="")
+    // ){
+    //     throw new ApiError(400,"All fields are required")
+    // }
 
     //checking user existence
     
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or:[{username},{email}]
     })
 
@@ -34,8 +34,16 @@ const registerUser = asyncHandler( async(req,res)=>{
     }
 
     //check for images 
+    //console.log("req files",req.files);
     const avatarLocalPath = req.files?.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0].path
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
+
+    let  coverImageLocalPath;
+    //array checks coverimage array has come ornot
+    if(req.files && Array.isArray(req.files.coverImage) &&req.files.coverImage.length>0)
+    {
+        coverImageLocalPath= req.files.coverImage[0].path
+    }
 
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar file is required")
