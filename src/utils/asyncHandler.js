@@ -2,7 +2,7 @@
 //how we handle using promies
 const asyncHandler = (requestHandler)=>{
 
-    (req,res,next)=>{
+    return (req,res,next)=>{
         Promise.resolve(requestHandler(req,res,next)).catch( (err)=> next(err))
     }
 }
@@ -32,6 +32,7 @@ export {asyncHandler}
 //     }
 // }
 
+// export {asyncHandler}
 //basically we made a wrapper whoever calls that function then gives necessary function as argument then this handler will
 //perform the async await for that function
 //what this does i reduces no of async await codes we write for interaction
