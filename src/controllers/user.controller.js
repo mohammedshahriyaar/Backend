@@ -136,7 +136,7 @@ const registerUser = asyncHandler( async(req,res)=>{
     //if exists return
 //above is my approach
 
-
+//login handler
 const loginUser = asyncHandler( async (req,res)=>{
     //data from req body
     //check name or email
@@ -204,6 +204,9 @@ const loginUser = asyncHandler( async (req,res)=>{
     
 })
 
+
+//logout handler
+
 const logoutUser = asyncHandler(async(req,res)=>{
     //find user
     await User.findByIdAndUpdate(
@@ -237,10 +240,9 @@ const logoutUser = asyncHandler(async(req,res)=>{
             )
          )
 
-
-
 })
 
+//basically this refreshAccessToken whenever a users accesstoken has expired
 const refreshAccessToken = asyncHandler( async(req,res)=>{
     //get refreshtoken fisrt
 
