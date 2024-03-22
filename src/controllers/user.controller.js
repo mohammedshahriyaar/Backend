@@ -328,7 +328,7 @@ const getCurrentUser = asyncHandler( async (req,res)=>{
     return res
     .status(200)
     .json(
-        200,req.user,"current user fetched successfully"
+        new ApiResponse(200,req.user,"current user fetched successfully")
     )
 })
 
@@ -382,6 +382,8 @@ const updateUserAvatar = asyncHandler( async(req,res)=>{
         }
     ).select("-password")
 
+    //todo is to delete existing avatar 
+
 
     return res
     .status(200)
@@ -389,6 +391,40 @@ const updateUserAvatar = asyncHandler( async(req,res)=>{
         new ApiResponse(200,user,"avatarUpdated")
     )
 })
+
+//this is extended updateUseravatar functionality what we do is remove existing avatar from cloudinary 
+// const updateUserAvatar = asyncHandler(async (req, res) => {
+//     const avatarLocalPath = req.file?.path;
+
+//     if (!avatarLocalPath) {
+//         throw new ApiError(400, "Avatar file missing");
+//     }
+
+//     const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+//     if (!avatar.url) {
+//         throw new ApiError(400, "Error while uploading avatar");
+//     }
+
+//     const userId = req.user?._id;
+
+//     const user = await User.findById(userId).select("-password");
+
+//     // Check if the user already has an avatar
+//     if (user.avatar) {
+//         // Delete the existing avatar from Cloudinary
+//         await deleteFromCloudinary(user.avatar);
+//     }
+
+//     // Use set method to update the user's avatar
+//     await User.findByIdAndUpdate(userId, { $set: { avatar: avatar.url } });
+
+//     // Fetch the updated user
+//     const updatedUser = await User.findById(userId).select("-password");
+
+//     return res.status(200).json(new ApiResponse(200, updatedUser, "avatarUpdated"));
+// });
+
 
 //coverImage update
 
