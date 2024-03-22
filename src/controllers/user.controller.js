@@ -462,6 +462,101 @@ const updateUserCoverImage = asyncHandler( async(req,res)=>{
 })
 
 
+//getUserchannelprofile
+
+const getUserChannelProfile = asyncHandler(async(req,res)=>{
+
+    //get user from parameters of url
+
+    const{username} = req.params 
+
+    if(!username?.trim()){
+        throw new ApiError(400,"User Name missing")
+    }
+
+    //basic approach is to find username and then write pipeline for that
+    // User.find({username})
+
+    //better approach aggregate pipeline
+    //aggregate pipeline returns an array
+
+    const channel =  await User.aggregate([
+        {
+            $match:{
+                username:username?.toLowerCase()
+            }
+        },
+                //this tells how many are my subscribers i have basically i search for my id(channel) 
+                //in every document 
+        {
+            $lookup:{
+                from:"subscriptions",
+                localField:"_id",
+                foreignField:"channel",
+                as:"susbcribers"
+            }
+
+        },
+        //this stage helps to tell how many i am subscribed to so what i do is search
+        //for my id(subscriber) in every document
+        {
+            $lookup:{
+                from:"subscriptions",
+                localField:"_id",
+                foreignField:"subscriber",
+                as:"susbcribedTo"
+
+            }
+        },
+        //after finding now i am adding new fields to user which are subscriber count,
+        //subscribedto count
+        {
+            $addFields:{
+                subscribersCount:{
+                    $size:"$subscribers"
+                },
+                channelsSubscribedToCount:{
+
+                    $size:"$subscribedTo"
+                },
+                isSubscribed:{
+                    //what i do is find current id is subscriber object if found 
+                    //i am a valid subscriber of a channel
+                    $cond:{
+                        if:{ $in: [req.user?._id,"$subscribers.subscriber"]},
+                        then:true,
+                        else:false
+                    }
+                }
+            }
+        },
+        //project only specific values
+        {
+            $project:{
+                fullName:1,
+                username:1,
+                subscribersCount:1,
+                channelsSubscribedToCount:1,
+                isSubscribed:1,
+                avatar:1,
+                coverImage:1,
+                email:1,
+            }
+        }
+    ])
+
+    // console.log("channel is",channel);
+    if(!channel?.length){
+        throw new ApiError(404,"channel diesn't exist")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,channel[0],"User channel fetch Successfull")
+    )
+
+})
 
 
 
@@ -474,4 +569,6 @@ const updateUserCoverImage = asyncHandler( async(req,res)=>{
 
 
 
-export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImage}
+
+
+export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImage,getUserChannelProfile}
